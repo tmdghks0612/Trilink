@@ -1,82 +1,148 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.UI;
 using UnityEngine;
 
 public class TriManager : MonoBehaviour
 {
     public TextAsset textfile;
-    public enum Shape { Triangle = 0, Rectangle = 1 };
     public GameObject Tri;
+    public GameObject TriRect;
     public GameObject PlayerPanel;
     public List<GameObject> CurTriList;
     public int TriCounter = 0;
-    public int shape = 3;
+    private bool rectangleFlag = false;
 
-    public class TriPoint
-    {
-        public bool exist;
-        public Shape shape;
-        public Vector3 coord;
-    }
-    public TriPoint[] TriArr;
+    public Color TriColor;
+    public Color TriRectColor;
+
+    public Color highlight = new Color(1.0f, 1.0f, 1.0f);
+
+    public TriControl.TriPoint[] TriArr;
     // Start is called before the first frame update
     void Start()
     {
         int PointNumber = 0;
 
+        TriColor = Tri.GetComponent<Image>().color;
+        TriRectColor = TriRect.GetComponent<Image>().color;
         string content = textfile.text;
         var Lines = content.Split('\n');
         PointNumber = int.Parse(Lines[0]);
-        TriArr = new TriPoint[PointNumber + 1];
+        TriArr = new TriControl.TriPoint[PointNumber + 1];
 
-        TriLocate(PointNumber, Lines);
+        InitPanel(PointNumber, Lines);
     }
 
     // Update is called once per frame
     void Update()
     {
-        
+
     }
-    void TriLocate(int PointNumber, string[] Lines)
+    void InitPanel(int PointNumber, string[] Lines)
     {
         int PointCounter = 0;
 
         for (PointCounter = 1; PointCounter < PointNumber + 1; ++PointCounter)
         {
-            GameObject TestButton = Instantiate(Tri) as GameObject;
             var words = Lines[PointCounter].Split(' ');
-            Debug.Log(PointCounter);
+            GameObject currButton;
+            Vector3 currVector;
+            TriControl.Shape currShape;
+
             //initialization of Tris
-            TriArr[PointCounter] = new TriPoint();
-            TriArr[PointCounter].exist = true;
-            TriArr[PointCounter].shape = (Shape)int.Parse(words[0]);
-            TriArr[PointCounter].coord = new Vector3(float.Parse(words[1]), float.Parse(words[2]), float.Parse(words[3]));
-            TestButton.transform.Translate(TriArr[PointCounter].coord);
-            Debug.Log(TriArr[PointCounter].coord);
-            TestButton.transform.SetParent(PlayerPanel.transform, false);
+            currShape = (TriControl.Shape)int.Parse(words[0]);
+            currVector = new Vector3(float.Parse(words[1]), float.Parse(words[2]), float.Parse(words[3]));
+
+            if (currShape == TriControl.Shape.Triangle)
+            { currButton = Instantiate(Tri) as GameObject; }
+            else
+            { currButton = Instantiate(TriRect) as GameObject; }
+
+            currButton.GetComponent<TriControl>().triPoint.exist = true;
+            currButton.GetComponent<TriControl>().triPoint.shape = currShape;
+            currButton.GetComponent<TriControl>().triPoint.coord = currVector;
+            currButton.transform.Translate(currVector);
+            currButton.transform.SetParent(PlayerPanel.transform, false);
+
+            Debug.Log(PointCounter);
+            Debug.Log(currVector);
         }
+    }
+
+    public void TriRemove(GameObject CurPoint)
+    {
+        Debug.Log("TriRemove");
+        TriCounter -= 1;
+        TriNoHighlight(CurPoint);
+        if (CurPoint.GetComponent<TriControl>().triPoint.shape == TriControl.Shape.Rectangle)
+        {
+            rectangleFlag = false;
+        }
+        CurTriList.Remove(CurPoint);
     }
 
     public void TriIncrease(GameObject CurPoint)
     {
         //Use TriArr with TriIncrease to let what shape current button is@@@@@@@@@@@@@@@@@@@@
+        int ClearNumber = 3;
         TriCounter += 1;
         CurTriList.Add(CurPoint);
-        if(TriCounter == shape)
+        TriHighlight(CurPoint);
+
+        //if clicked button is a rectangle
+        if (CurPoint.GetComponent<TriControl>().triPoint.shape == TriControl.Shape.Rectangle)
+        {
+            //if another rectangle was chosen beforehand
+            if (rectangleFlag == true)
+            {
+                ResetList(CurTriList);
+                Debug.Log("Two rectangles chosen");
+            }
+            //raise rectangleFlag
+            else { rectangleFlag = true; }
+        }
+        //if a rectangle was involved in the list, clear with 4 TriPoints
+        if (rectangleFlag) { ClearNumber = 4; }
+
+        if (TriCounter == ClearNumber)
         {
             TriCounter = 0;
-            HideTris(CurTriList);
+            ClearList(CurTriList);
         }
         Debug.Log(CurTriList);
     }
 
-    public void HideTris(List<GameObject> TriList)
+    public void ResetList(List<GameObject> TriList)
     {
-        foreach(GameObject triObject in TriList)
-        {
-            triObject.SetActive(false);
-        }
+        rectangleFlag = false;
         TriList.Clear();
+    }
+
+    public void ClearList(List<GameObject> TriList)
+    {
+        foreach (GameObject triObject in TriList)
+        {
+            triObject.GetComponent<TriControl>().triPoint.exist = false;
+            triObject.SetActive(false);
+            TriNoHighlight(triObject);
+        }
+        rectangleFlag = false;
+        TriList.Clear();
+    }
+
+    public void TriHighlight(GameObject CurObject)
+    {
+        CurObject.GetComponent<Image>().color = Color.white;
+    }
+    public void TriNoHighlight(GameObject CurObject)
+    {
+        Color prevColor;
+        if (CurObject.GetComponent<TriControl>().triPoint.shape == TriControl.Shape.Triangle)
+        { prevColor = TriColor; }
+        else
+        { prevColor = TriRectColor; }
+        CurObject.GetComponent<Image>().color = prevColor;
     }
     /*void TriCheck()
 {
