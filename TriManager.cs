@@ -10,6 +10,7 @@ public class TriManager : MonoBehaviour
     public GameObject TriRect;
     public GameObject PlayerPanel;
     public List<GameObject> CurTriList;
+    public List<GameObject> DelTriList;
     public int TriCounter = 0;
     private bool rectangleFlag = false;
 
@@ -70,17 +71,7 @@ public class TriManager : MonoBehaviour
         }
     }
 
-    public void TriRemove(GameObject CurPoint)
-    {
-        Debug.Log("TriRemove");
-        TriCounter -= 1;
-        TriNoHighlight(CurPoint);
-        if (CurPoint.GetComponent<TriControl>().triPoint.shape == TriControl.Shape.Rectangle)
-        {
-            rectangleFlag = false;
-        }
-        CurTriList.Remove(CurPoint);
-    }
+    
 
     public void TriIncrease(GameObject CurPoint)
     {
@@ -88,8 +79,9 @@ public class TriManager : MonoBehaviour
         int ClearNumber = 3;
         TriCounter += 1;
         CurTriList.Add(CurPoint);
-        TriHighlight(CurPoint);
+        SetTriHighlight(CurPoint);
 
+        Debug.Log("Highlighted!");
         //if clicked button is a rectangle
         if (CurPoint.GetComponent<TriControl>().triPoint.shape == TriControl.Shape.Rectangle)
         {
@@ -113,10 +105,39 @@ public class TriManager : MonoBehaviour
         Debug.Log(CurTriList);
     }
 
+    public void TriRemove(GameObject CurPoint)
+    {
+        Debug.Log("TriRemove");
+        TriCounter -= 1;
+        SetTriNoHighlight(CurPoint);
+        if (CurPoint.GetComponent<TriControl>().triPoint.shape == TriControl.Shape.Rectangle)
+        {
+            rectangleFlag = false;
+        }
+        CurTriList.Remove(CurPoint);
+    }
+
     public void ResetList(List<GameObject> TriList)
     {
+        TriCounter = 0;
         rectangleFlag = false;
         TriList.Clear();
+    }
+
+    public void ResetAllTris()
+    {
+        GameObject[] respawns = GameObject.FindGameObjectsWithTag("Respawn");
+        foreach (GameObject respawn in respawns)
+        {
+            SetTriNoHighlight(respawn);
+        }
+        foreach(GameObject deleted in DelTriList)
+        {
+            deleted.SetActive(true);
+            deleted.GetComponent<TriControl>().triPoint.exist = true;
+        }
+        DelTriList.Clear();
+        ResetList(CurTriList);
     }
 
     public void ClearList(List<GameObject> TriList)
@@ -124,18 +145,20 @@ public class TriManager : MonoBehaviour
         foreach (GameObject triObject in TriList)
         {
             triObject.GetComponent<TriControl>().triPoint.exist = false;
+            DelTriList.Add(triObject);
             triObject.SetActive(false);
-            TriNoHighlight(triObject);
+            SetTriNoHighlight(triObject);
         }
+        TriCounter = 0;
         rectangleFlag = false;
         TriList.Clear();
     }
 
-    public void TriHighlight(GameObject CurObject)
+    public void SetTriHighlight(GameObject CurObject)
     {
         CurObject.GetComponent<Image>().color = Color.white;
     }
-    public void TriNoHighlight(GameObject CurObject)
+    public void SetTriNoHighlight(GameObject CurObject)
     {
         Color prevColor;
         if (CurObject.GetComponent<TriControl>().triPoint.shape == TriControl.Shape.Triangle)
@@ -144,11 +167,5 @@ public class TriManager : MonoBehaviour
         { prevColor = TriRectColor; }
         CurObject.GetComponent<Image>().color = prevColor;
     }
-    /*void TriCheck()
-{
-    self
-    TriIncrease// 변수 하나 늘려주고 자료구조에 저장
-    TriNumber , Shape // TriNumber가 Shape 와 같은지 확인.
-        FadeTris// 없애주는 거 + 게임이 끝났는지 확인
-}*/
+
 }

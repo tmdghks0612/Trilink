@@ -8,6 +8,7 @@ public class LevelControl : MonoBehaviour
     public GameObject Tri;
     public GameObject PlayerPanel;
     public TriManager TriManagerInst;
+    public Transform CameraTransform;
     // Start is called before the first frame update
 
     void Start()
@@ -27,9 +28,25 @@ public class LevelControl : MonoBehaviour
         
     }
 
-    //Locate Tri s coordinates according to file
+    public void ResetScene()
+    {
+        TriManagerInst.ResetAllTris();
+        ReturnScene();
+        //reset score and etc
+    }
     
-
+    public void ReturnScene()
+    {
+        //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        Vector3 Direction = new Vector3(-928.0f, 0.0f, 0.0f);
+        CameraTransform.rotation
+    }
     
+    public void PopupReset()
+    {
+        //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        Vector3 Direction = new Vector3(928.0f, 0.0f, 0.0f);
+        CameraTransform.Translate(Direction);
+    }
 
 }
