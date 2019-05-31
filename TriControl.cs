@@ -15,19 +15,16 @@ public class TriControl : MonoBehaviour
     public TriPoint triPoint = new TriPoint();
     public void TriClicked()
     {
-        if(triPoint.exist)
+        GameObject triManagerObject = GameObject.Find("TriManager");
+        TriManager triManager = triManagerObject.GetComponent<TriManager>();
+        if (!triManager.CurTriList.Contains(this.gameObject))
         {
-            triPoint.exist = false;
-            GameObject triManagerObject = GameObject.Find("TriManager");
-            TriManager triManager = triManagerObject.GetComponent<TriManager>();
+            
             triManager.TriIncrease(this.gameObject);
             Debug.Log(triManager.TriCounter);
         }
         else
         {
-            triPoint.exist = true;
-            GameObject triManagerObject = GameObject.Find("TriManager");
-            TriManager triManager = triManagerObject.GetComponent<TriManager>();
             triManager.TriRemove(this.gameObject);
             Debug.Log(triManager.TriCounter);
         }

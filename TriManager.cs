@@ -110,6 +110,7 @@ public class TriManager : MonoBehaviour
         Debug.Log("TriRemove");
         TriCounter -= 1;
         SetTriNoHighlight(CurPoint);
+        CurPoint.GetComponent<TriControl>().triPoint.exist = true;
         if (CurPoint.GetComponent<TriControl>().triPoint.shape == TriControl.Shape.Rectangle)
         {
             rectangleFlag = false;
@@ -133,6 +134,7 @@ public class TriManager : MonoBehaviour
         }
         foreach(GameObject deleted in DelTriList)
         {
+            deleted.GetComponent<TriControl>().triPoint.exist = true;
             deleted.SetActive(true);
             deleted.GetComponent<TriControl>().triPoint.exist = true;
         }
