@@ -83,6 +83,7 @@ public class TriManager : MonoBehaviour
 
         Debug.Log("Highlighted!");
         //if clicked button is a rectangle
+
         if (CurPoint.GetComponent<TriControl>().triPoint.shape == TriControl.Shape.Rectangle)
         {
             //if another rectangle was chosen beforehand

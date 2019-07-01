@@ -3,11 +3,14 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using UnityEngine.EventSystems;
 
 
 public class MainMenu : MonoBehaviour
 {
+    public int NUM_OF_SETTINGS=4;
     public float highlight = 1.2f;
+    public bool IsSettings = false;
 
     public GameObject LevelButtonPrefab;
     public GameObject LevelButtonContainer;
@@ -19,6 +22,7 @@ public class MainMenu : MonoBehaviour
     public GameObject ShopButtonPrefab;
     public GameObject TriButtonContainer;
     public GameObject TriRectButtonContainer;
+    public GameObject CheckmarkPrefab;
 
     private Transform cameraTransform;
     private Transform cameraDesiredLookAt;
@@ -26,6 +30,13 @@ public class MainMenu : MonoBehaviour
     public GameObject Tri;
     public GameObject TriRect;
     public GameObject TestButton;
+
+    public GameObject[] CheckmarkList = null;
+
+    public GameObject CurrentTriColor;
+    public GameObject CurrentTriImage;
+    public GameObject CurrentTriRectColor;
+    public GameObject CurrentTriRectImage;
     
     private const float CAMERA_TRANSITION_SPEED = 3.0f;
 
@@ -56,7 +67,10 @@ public class MainMenu : MonoBehaviour
     private void Start()
     {
         int btnCounter = 0;
+
+        CheckmarkList = new GameObject[NUM_OF_SETTINGS];
         cameraTransform = Camera.main.transform;
+
         Sprite[] thumbnails = Resources.LoadAll<Sprite>("Levels");
         //Sprite array to save all thumbnails in "Levels" in Resources
         foreach (Sprite thumbnail in thumbnails)
@@ -121,6 +135,20 @@ public class MainMenu : MonoBehaviour
             Sprite curImage = btnImage;
             btncontainer.GetComponent<Button>().onClick.AddListener(() => TriRectChangeImage(curImage));
         }
+
+        //testing
+        for(int i=0; i<NUM_OF_SETTINGS; ++i)
+        {
+            CheckmarkList[i] = Instantiate<GameObject>(CheckmarkPrefab);
+        }
+
+        //initialize buttons to default images @@@@@@change to saved settings later on
+        if (IsSettings == false)
+        {
+            InitializeBtnImage();
+        }
+
+        SetCheckmarks();
     }
     private void Update()
     {
@@ -143,19 +171,75 @@ public class MainMenu : MonoBehaviour
     {
         TriColor = btnColor;
         Tri.GetComponent<Image>().color = btnColor;
+        //
+        CurrentTriColor = EventSystem.current.currentSelectedGameObject;
+        SetCheckmarks();
     }
     public void TriChangeImage(Sprite btnImage)
     {
         Tri.GetComponent<Image>().sprite = btnImage;
+        CurrentTriImage = EventSystem.current.currentSelectedGameObject;
+        SetCheckmarks();
     }
 
     public void TriRectChangeColor(Color btnColor)
     {
         TriRectColor = btnColor;
         TriRect.GetComponent<Image>().color = btnColor;
+
+        CurrentTriRectColor = EventSystem.current.currentSelectedGameObject;
+        SetCheckmarks();
     }
     public void TriRectChangeImage(Sprite btnImage)
     {
         TriRect.GetComponent<Image>().sprite = btnImage;
+
+        CurrentTriRectImage = EventSystem.current.currentSelectedGameObject;
+        SetCheckmarks();
+    }
+
+    public void LocateCheckmark(GameObject Checkmark, GameObject CurrentButton)
+    {
+        if(Checkmark == null)
+        {
+            Checkmark = Instantiate(CheckmarkPrefab);
+        }
+        Checkmark.transform.SetParent(CurrentButton.transform,false);
+    }
+
+    public void SetCheckmarks()
+    {
+        LocateCheckmark(CheckmarkList[0], CurrentTriColor);
+        LocateCheckmark(CheckmarkList[1], CurrentTriImage);
+        LocateCheckmark(CheckmarkList[2], CurrentTriRectColor);
+        LocateCheckmark(CheckmarkList[3], CurrentTriRectImage);
+    }
+
+    public void InitializeBtnImage()
+    {
+        Sprite TriRectDefaultImage = Resources.Load<Sprite>("TriRectShape/default");
+        Sprite TriDefaultImage = Resources.Load<Sprite>("TriShape/default");
+        GameObject DefaultContainer;
+
+        TriRect.GetComponent<Image>().sprite = TriRectDefaultImage;
+        Tri.GetComponent<Image>().sprite = TriDefaultImage;
+
+
+        DefaultContainer = GameObject.Find("TriColorContainer");
+        CurrentTriColor = DefaultContainer.transform.GetChild(0).gameObject;
+        LocateCheckmark(CheckmarkList[0], CurrentTriColor);
+
+        DefaultContainer = GameObject.Find("TriButtonContainer");
+        CurrentTriImage = DefaultContainer.transform.GetChild(0).gameObject;
+        LocateCheckmark(CheckmarkList[0], CurrentTriImage);
+
+        DefaultContainer = GameObject.Find("TriRectColorContainer");
+        CurrentTriRectColor = DefaultContainer.transform.GetChild(0).gameObject;
+        LocateCheckmark(CheckmarkList[0], CurrentTriRectColor);
+
+        DefaultContainer = GameObject.Find("TriRectButtonContainer");
+        CurrentTriRectImage = DefaultContainer.transform.GetChild(0).gameObject;
+        LocateCheckmark(CheckmarkList[0], CurrentTriRectImage);
+
     }
 }
