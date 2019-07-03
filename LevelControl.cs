@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.EventSystems;
+using UnityEngine.SceneManagement;
 using UnityEngine;
 
 public class LevelControl : MonoBehaviour
@@ -8,6 +9,7 @@ public class LevelControl : MonoBehaviour
     public GameObject Tri;
     public GameObject PlayerPanel;
     public GameObject ResetPopup;
+    public GameObject EndLevelPopup;
     public TriManager TriManagerInst;
     public Transform CameraTransform;
     // Start is called before the first frame update
@@ -50,7 +52,21 @@ public class LevelControl : MonoBehaviour
     {
         //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         Vector3 Direction = new Vector3(443.0f, 194.0f, 0.0f);
-        ResetPopup.GetComponent<RectTransform>().position = PlayerPanel.gameObject.GetComponent<RectTransform>().position;
+        ResetPopup.transform.position = PlayerPanel.transform.position;
     }
 
+    public void PopupEndLevel()
+    {
+        EndLevelPopup.transform.position = PlayerPanel.transform.position;
+    }
+    
+    public void EndLevel()
+    {
+        PopupEndLevel();
+    }
+
+    public void ReturnToMainmenu()
+    {
+        SceneManager.LoadScene("Menu");
+    }
 }

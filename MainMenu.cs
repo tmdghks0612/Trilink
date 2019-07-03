@@ -1,9 +1,11 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using UnityEngine.EventSystems;
+
 
 
 public class MainMenu : MonoBehaviour
@@ -159,7 +161,15 @@ public class MainMenu : MonoBehaviour
     }
     private void LoadLevel(string sceneName)
     {
-        SceneManager.LoadScene(sceneName);
+        string path = "Assets/Resources/LevelsText/" + sceneName + ".txt";
+
+        var reader = new StreamReader(path);
+        var writer = new StreamWriter("Assets/Resources/SceneText.txt",false);
+
+        writer.Write(reader.ReadToEnd());
+        writer.Close();
+
+        SceneManager.LoadScene("BaseScene");
     }
 
     public void LookAtMenu(Transform menuTransform)

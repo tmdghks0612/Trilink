@@ -1,33 +1,39 @@
 ﻿using System.Collections;
+using System.IO;
 using System.Collections.Generic;
 using UnityEngine.UI;
 using UnityEngine;
 
 public class TriManager : MonoBehaviour
 {
-    public TextAsset textfile;
     public GameObject Tri;
     public GameObject TriRect;
     public GameObject PlayerPanel;
     public List<GameObject> CurTriList;
     public List<GameObject> DelTriList;
     public int TriCounter = 0;
+    public int TriTotal = 0;
     private bool rectangleFlag = false;
+
+    public LevelControl LevelControlInstance;
 
     public Color TriColor;
     public Color TriRectColor;
 
     public Color highlight = new Color(1.0f, 1.0f, 1.0f);
-
+    
     public TriControl.TriPoint[] TriArr;
     // Start is called before the first frame update
     void Start()
     {
         int PointNumber = 0;
+        string path = "Assets/Resources/SceneText.txt";
+
+        var reader = new StreamReader(path);
 
         TriColor = Tri.GetComponent<Image>().color;
         TriRectColor = TriRect.GetComponent<Image>().color;
-        string content = textfile.text;
+        string content = reader.ReadToEnd();
         var Lines = content.Split('\n');
         PointNumber = int.Parse(Lines[0]);
         TriArr = new TriControl.TriPoint[PointNumber + 1];
@@ -40,9 +46,18 @@ public class TriManager : MonoBehaviour
     {
 
     }
+
+    public void ClearLevel()
+    {
+        Debug.Log("Clear!");
+        LevelControlInstance.EndLevel();
+    }
+
     void InitPanel(int PointNumber, string[] Lines)
     {
         int PointCounter = 0;
+
+        TriTotal = PointNumber;
 
         for (PointCounter = 1; PointCounter < PointNumber + 1; ++PointCounter)
         {
@@ -155,6 +170,10 @@ public class TriManager : MonoBehaviour
         TriCounter = 0;
         rectangleFlag = false;
         TriList.Clear();
+        if(DelTriList.Count == TriTotal)
+        {
+            ClearLevel();
+        }
     }
 
     public void SetTriHighlight(GameObject CurObject)
