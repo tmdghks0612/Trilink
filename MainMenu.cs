@@ -250,6 +250,10 @@ public class MainMenu : MonoBehaviour
         DefaultContainer = GameObject.Find("TriRectButtonContainer");
         CurrentTriRectImage = DefaultContainer.transform.GetChild(0).gameObject;
         LocateCheckmark(CheckmarkList[0], CurrentTriRectImage);
+    }
 
+    public void EditLevel()
+    {
+        SceneManager.LoadScene("EditScene");
     }
 }

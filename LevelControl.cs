@@ -10,6 +10,8 @@ public class LevelControl : MonoBehaviour
     public GameObject PlayerPanel;
     public GameObject ResetPopup;
     public GameObject EndLevelPopup;
+    public GameObject UploadPopup;
+
     public TriManager TriManagerInst;
     public Transform CameraTransform;
     // Start is called before the first frame update
@@ -36,7 +38,11 @@ public class LevelControl : MonoBehaviour
 
     public void ResetScene()
     {
-        TriManagerInst.ResetAllTris();
+        GameObject[] Tris = GameObject.FindGameObjectsWithTag("Respawn");
+        foreach(GameObject Tri in Tris)
+        {
+            Tri.SetActive(false);
+        }
         ReturnScene();
         //reset score and etc
     }
@@ -68,5 +74,23 @@ public class LevelControl : MonoBehaviour
     public void ReturnToMainmenu()
     {
         SceneManager.LoadScene("Menu");
+    }
+
+    public void PopupUpload()
+    {
+        Debug.Log("I'm here!!");
+        UploadPopup.transform.position = PlayerPanel.transform.position;
+    }
+
+    public void ReturnUploadScene()
+    {
+        //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        Vector3 Direction = new Vector3(675.0f, 0.0f, 0.0f);
+        UploadPopup.transform.position = PlayerPanel.gameObject.GetComponent<RectTransform>().position + Direction;
+    }
+
+    public void UploadLevel()
+    {
+        //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ server job
     }
 }
