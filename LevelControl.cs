@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.EventSystems;
+using System.IO;
 using UnityEngine.SceneManagement;
 using UnityEngine;
 
@@ -14,7 +15,11 @@ public class LevelControl : MonoBehaviour
 
     public TriManager TriManagerInst;
     public Transform CameraTransform;
-    // Start is called before the first frame update
+
+    public string NameLevelText = "Editted";
+
+    public List<GameObject> TriEditList;
+    public List<GameObject> TriRectEditList;
 
     void Start()
     {
@@ -78,7 +83,6 @@ public class LevelControl : MonoBehaviour
 
     public void PopupUpload()
     {
-        Debug.Log("I'm here!!");
         UploadPopup.transform.position = PlayerPanel.transform.position;
     }
 
@@ -91,6 +95,35 @@ public class LevelControl : MonoBehaviour
 
     public void UploadLevel()
     {
+        WriteLevelText();
         //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ server job
+    }
+
+    public void WriteLevelText()
+    {
+        string path = "Assets/Resources/LevelsText/" + NameLevelText + ".txt";
+
+        if (CheckIdenticalName(NameLevelText))
+        {
+            File.WriteAllText(path,string.Format("{0}\n",TriEditList.Count+TriRectEditList.Count));
+        }
+
+        foreach(GameObject TriEdit in TriEditList)
+        {
+            Vector3 position = TriEdit.transform.position;
+            File.AppendAllText(path, string.Format("0 {0} {1} 0.0\n",position.x, position.y));
+        }
+
+        foreach (GameObject TriRectEdit in TriRectEditList)
+        {
+            Vector3 position = TriRectEdit.transform.position;
+            File.AppendAllText(path, string.Format("1 {0} {1} 0.0\n", position.x, position.y));
+        }
+    }
+
+    public bool CheckIdenticalName(string Name)
+    {
+        //@@@@@@@@@@@@@@@@@@@@check if identical name exists in server
+        return true;
     }
 }

@@ -6,6 +6,7 @@ using UnityEngine.UI;
 public class SpawnControl : MonoBehaviour
 {
     public GameObject PlayerPanel;
+    public LevelControl LevelControlInstance;
 
     public GameObject Tri;
     public GameObject TriRect;
@@ -39,7 +40,8 @@ public class SpawnControl : MonoBehaviour
         GameObject TriEditInstance = Instantiate(TriEdit) as GameObject;
         TriEditInstance.transform.position = PlayerPanel.transform.position + offset;
         TriEditInstance.transform.SetParent(PlayerPanel.transform, true);
-        Debug.Log(TriEditInstance.transform.position);
+
+        LevelControlInstance.TriEditList.Add(TriEditInstance);
     }
 
     public void SpawnTriRect()
@@ -47,5 +49,7 @@ public class SpawnControl : MonoBehaviour
         GameObject TriRectEditInstance = Instantiate(TriRectEdit) as GameObject;
         TriRectEditInstance.transform.position = PlayerPanel.transform.position;
         TriRectEditInstance.transform.SetParent(PlayerPanel.transform, true);
+
+        LevelControlInstance.TriRectEditList.Add(TriRectEditInstance);
     }
 }
