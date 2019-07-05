@@ -16,6 +16,8 @@ public class SpawnControl : MonoBehaviour
     public GameObject TriEdit;
     public GameObject TriRectEdit;
 
+    public Vector3 offset = new Vector3(0, 0, -10.0f);
+
     // Start is called before the first frame update
     void Start()
     {
@@ -35,7 +37,15 @@ public class SpawnControl : MonoBehaviour
     public void SpawnTri()
     {
         GameObject TriEditInstance = Instantiate(TriEdit) as GameObject;
-        TriEditInstance.transform.position = PlayerPanel.transform.position;
-        TriEditInstance.transform.SetParent(PlayerPanel.transform, false);
+        TriEditInstance.transform.position = PlayerPanel.transform.position + offset;
+        TriEditInstance.transform.SetParent(PlayerPanel.transform, true);
+        Debug.Log(TriEditInstance.transform.position);
+    }
+
+    public void SpawnTriRect()
+    {
+        GameObject TriRectEditInstance = Instantiate(TriRectEdit) as GameObject;
+        TriRectEditInstance.transform.position = PlayerPanel.transform.position;
+        TriRectEditInstance.transform.SetParent(PlayerPanel.transform, true);
     }
 }
