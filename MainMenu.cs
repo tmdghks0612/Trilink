@@ -12,6 +12,7 @@ public class MainMenu : MonoBehaviour
 {
     public int NUM_OF_SETTINGS=4;
     public float highlight = 1.2f;
+    public float LevelButtonScale = 0.5f;
     public bool IsSettings = false;
 
     public GameObject LevelButtonPrefab;
@@ -78,6 +79,7 @@ public class MainMenu : MonoBehaviour
         foreach (Sprite thumbnail in thumbnails)
         {
             GameObject container = Instantiate(LevelButtonPrefab) as GameObject;
+            container.transform.localScale = new Vector3(LevelButtonScale, LevelButtonScale, 1.0f);
             container.GetComponent<Image>().sprite = thumbnail;
             container.transform.SetParent(LevelButtonContainer.transform, false);
             //overload to spawn object in parent location
