@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using UnityEngine.Networking;
 using System;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
@@ -30,12 +31,19 @@ public class LevelControl : MonoBehaviour
     public TriManager TriManagerInst;
     public Transform CameraTransform;
 
-    public string NameLevelText = "Editted";
+    //WWWForm variables
+    public int Id = 404;
+    public string Name = "Editted";
+    public string ImageUrl = "example.com";
+    public string LevelText = "";
+    public float highscore = 0.00f;
 
     public List<GameObject> TriEditList;
     public List<GameObject> TriRectEditList;
 
     public Sprite UploadSprite;
+
+    public string url = "ec2-3-15-131-103.us-east-2.compute.amazonaws.com:8081";
 
     void Start()
     {
@@ -50,6 +58,7 @@ public class LevelControl : MonoBehaviour
 
 
         //used when file read enabled
+        
     }
     // Update is called once per frame
     void Update()
@@ -111,53 +120,63 @@ public class LevelControl : MonoBehaviour
 
     public void UploadLevel()
     {
-        WriteLevelText();
-        WriteLevelImage();
 
-        //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ server job
+        WriteIdLevel();
+        WriteNameLevel();
+        WriteImageUrlLevel();
+        WriteLevelTextLevel();
+        WriteHighscoreLevel();
+
+        StartCoroutine(PostRequest(url));
+        SceneManager.LoadScene("Menu");
 
     }
 
-    public void WriteLevelText()
+    public void WriteIdLevel()
     {
-        NameLevelText = InputFieldInstance.text;
+        //Id = GetIdLevel()@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
-        // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@user input to change NameLevelText
+        //get id function needed!!
+    }
 
-        string path = "Assets/Resources/LevelsText/" + NameLevelText + ".txt";
+    public void WriteNameLevel()
+    {
+        Name = InputFieldInstance.text;
+    }
 
-        if (CheckIdenticalName(NameLevelText))
-        {
-            File.WriteAllText(path,string.Format("{0}\n",TriEditList.Count+TriRectEditList.Count));
-        }
+    public void WriteImageUrlLevel()
+    {
+        Texture2D texture = UploadSprite.texture;
+        //imageurl = GetImageUrl()@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+        //get url function needed!
+    }
+
+    public void WriteLevelTextLevel()
+    {
+        //network error will be checked before executing this function.
+        LevelText = string.Format("{0}\n", TriEditList.Count + TriRectEditList.Count);
 
         foreach(GameObject TriEdit in TriEditList)
         {
             Vector3 position = TriEdit.transform.position;
-            File.AppendAllText(path, string.Format("0 {0} {1} 0.0\n",position.x, position.y));
+            LevelText = LevelText + string.Format("0 {0} {1} 0.0\n",position.x, position.y);
         }
 
         foreach (GameObject TriRectEdit in TriRectEditList)
         {
             Vector3 position = TriRectEdit.transform.position;
-            File.AppendAllText(path, string.Format("1 {0} {1} 0.0\n", position.x, position.y));
+            LevelText = LevelText + string.Format("0 {0} {1} 0.0\n", position.x, position.y);
         }
     }
 
-    public void WriteLevelImage()
-    { 
-        Texture2D texture = UploadSprite.texture;
-        byte[] texAsByte = texture.EncodeToPNG();
-        string path = "Assets/Resources/Levels/" + NameLevelText + ".png";
-
-        File.WriteAllBytes(path, texAsByte);
-    }
-
-    public bool CheckIdenticalName(string Name)
+    public void WriteHighscoreLevel()
     {
-        //@@@@@@@@@@@@@@@@@@@@check if identical name exists in server
-        return true;
+        //highscore = GetHighscore()@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+        //get highscore function needed!!
     }
+
 
     public void PopupLevelImage()
     {
@@ -191,6 +210,7 @@ public class LevelControl : MonoBehaviour
         }
 
         LocateCheckmark(LevelButtonContainer.transform.GetChild(0).gameObject);
+        UploadSprite = LevelButtonContainer.transform.GetChild(0).GetComponent<Image>().sprite;
     }
 
     public void ClickLevelImage()
@@ -217,4 +237,86 @@ public class LevelControl : MonoBehaviour
         LocateCheckmark(CheckmarkList[2], CurrentTriRectColor);
         LocateCheckmark(CheckmarkList[3], CurrentTriRectImage);
     }*/
+
+    // Start is called before the first frame update
+    
+
+    IEnumerator GetRequest(string url)
+    {
+        UnityWebRequest webRequest = UnityWebRequest.Get(url);
+        yield return webRequest.SendWebRequest();
+        if (webRequest.isNetworkError)
+        {
+            Debug.Log(": Error: " + webRequest.error);
+        }
+        else
+        {
+            Debug.Log(":\nReceived: " + webRequest.downloadHandler.text);
+        }
+    }
+
+    IEnumerator GetIdRequest(string url, string ID)
+    {
+        Debug.Log(url + "/" + ID);
+        UnityWebRequest webRequest = UnityWebRequest.Get(url + "/" + ID);
+        yield return webRequest.SendWebRequest();
+        if (webRequest.isNetworkError)
+        {
+            Debug.Log(": Error: " + webRequest.error);
+        }
+        else
+        {
+            //remove "[]" from json format
+            string jsonString = webRequest.downloadHandler.text.Replace("[", "").Replace("]", "");
+            Debug.Log(":\nReceived: " + webRequest.downloadHandler.text);
+            Debug.Log(jsonString);
+
+            //Convert {"field1":"myfield1", ...} to field1=myfield1 ... variables in a class
+            levelInfo levelInstance = levelInfo.CreateFromJson(jsonString);
+            Debug.Log(levelInstance.name);
+        }
+    }
+
+    IEnumerator PostRequest(string url)
+    {
+        WWWForm formData = new WWWForm();
+        //add fields between here
+
+        formData.AddField("id", Id.ToString());
+        formData.AddField("name", Name);
+        formData.AddField("imageurl", ImageUrl);
+        formData.AddField("leveltext", LevelText);
+        formData.AddField("highscore", highscore.ToString());
+
+        //add fields between here!
+        using (UnityWebRequest webRequest = UnityWebRequest.Post(url, formData))
+        {
+            //webRequest.chunkedTransfer = false;
+            yield return webRequest.SendWebRequest();
+
+            if (webRequest.isNetworkError)
+            {
+                Debug.Log(":Request error:");
+            }
+            else
+            {
+                Debug.Log(":Request Sent:");
+            }
+        }
+    }
+
+    public class levelInfo
+    {
+        public int id;
+        public string name;
+        public string imageurl;
+        public string leveltext;
+        public float highscore;
+
+        public static levelInfo CreateFromJson(string jsonString)
+        {
+            return JsonUtility.FromJson<levelInfo>(jsonString);
+        }
+    }
+
 }
