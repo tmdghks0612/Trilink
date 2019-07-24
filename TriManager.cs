@@ -2,6 +2,7 @@
 using System.IO;
 using System.Collections.Generic;
 using UnityEngine.UI;
+using UnityEngine.Networking;
 using UnityEngine;
 
 public class TriManager : MonoBehaviour
@@ -15,6 +16,12 @@ public class TriManager : MonoBehaviour
     public int TriTotal = 0;
     private bool rectangleFlag = false;
 
+    public Text textScore;
+    public Text textbestScore;
+
+    public float score;
+    public float bestscore;
+
     public LevelControl LevelControlInstance;
 
     public Color TriColor;
@@ -24,16 +31,24 @@ public class TriManager : MonoBehaviour
     
     public TriControl.TriPoint[] TriArr;
     // Start is called before the first frame update
+
+    string urlWeb = "http://ec2-3-15-131-103.us-east-2.compute.amazonaws.com:8081";
+
     void Start()
     {
         int PointNumber = 0;
-        string path = "Assets/Resources/SceneText.txt";
+        //change to load leveltext from server@@@@@@@@@@@@@@@@@@@@@@@@@
+        /*string path = "Assets/Resources/SceneText.txt";
 
         var reader = new StreamReader(path);
 
+        
+        string content = reader.ReadToEnd();*/
+        string content = PublicLevel.sceneText;
+        string bestscore = PublicLevel.highScore.ToString();
+
         TriColor = Tri.GetComponent<Image>().color;
         TriRectColor = TriRect.GetComponent<Image>().color;
-        string content = reader.ReadToEnd();
         var Lines = content.Split('\n');
         PointNumber = int.Parse(Lines[0]);
         TriArr = new TriControl.TriPoint[PointNumber + 1];
@@ -51,6 +66,12 @@ public class TriManager : MonoBehaviour
     {
         Debug.Log("Clear!");
         LevelControlInstance.EndLevel();
+        if(score > bestscore)
+        {
+            //send update request by PublicLevel.id on highscore@@@@@@@@@@@@@@@@@@@@@@@@
+            bestscore = score;
+            StartCoroutine(PutRequest(urlWeb));
+        }
     }
 
     void InitPanel(int PointNumber, string[] Lines)
@@ -81,8 +102,8 @@ public class TriManager : MonoBehaviour
             currButton.transform.Translate(currVector);
             currButton.transform.SetParent(PlayerPanel.transform, false);
 
-            Debug.Log(PointCounter);
-            Debug.Log(currVector);
+            //Debug.Log(PointCounter);
+            //Debug.Log(currVector);
         }
     }
 
@@ -169,11 +190,21 @@ public class TriManager : MonoBehaviour
         }
         TriCounter = 0;
         rectangleFlag = false;
+
+        score += AddScore(TriList);
+
         TriList.Clear();
+
         if(DelTriList.Count == TriTotal)
         {
             ClearLevel();
         }
+    }
+
+    public float AddScore(List<GameObject> TriList)
+    {
+        //calculate score here!@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        return 50.1f;
     }
 
     public void SetTriHighlight(GameObject CurObject)
@@ -188,6 +219,46 @@ public class TriManager : MonoBehaviour
         else
         { prevColor = TriRectColor; }
         CurObject.GetComponent<Image>().color = prevColor;
+    }
+
+    IEnumerator PutRequest(string url)
+    {
+        WWWForm formWWW = new WWWForm();
+        //add fields between here
+
+        formWWW.AddField("highscore", bestscore.ToString());
+        //byte[] formData = System.Text.Encoding.UTF8.GetBytes(bestscore.ToString());
+        //string myString = System.Text.Encoding.UTF8.GetString(formData);
+
+        MyClass classData = new MyClass();
+        classData.highscore = bestscore;
+
+        Debug.Log(JsonUtility.ToJson(classData));
+
+        urlWeb = url + "/" + PublicLevel.id.ToString();
+        //add fields between here!
+        using (UnityWebRequest webRequest = UnityWebRequest.Put(urlWeb, JsonUtility.ToJson(classData)))
+        {
+            //webRequest header of request to HTTP server should be set to json
+            webRequest.SetRequestHeader("Content-type", "application/json");
+
+            yield return webRequest.SendWebRequest();
+
+            if (webRequest.isNetworkError)
+            {
+                Debug.Log(":Request error:");
+            }
+            else
+            {
+                Debug.Log(":Request Sent:");
+                Debug.Log(urlWeb);
+            }
+        }
+    }
+
+    public class MyClass
+    {
+        public float highscore;
     }
 
 }

@@ -37,13 +37,13 @@ public class LevelControl : MonoBehaviour
     public string ImageUrl = "example.com";
     public string LevelText = "";
     public float highscore = 0.00f;
-
+    
     public List<GameObject> TriEditList;
     public List<GameObject> TriRectEditList;
 
     public Sprite UploadSprite;
 
-    public string url = "ec2-3-15-131-103.us-east-2.compute.amazonaws.com:8081";
+    public string urlWeb = "http://ec2-3-15-131-103.us-east-2.compute.amazonaws.com:8081";
 
     void Start()
     {
@@ -59,6 +59,8 @@ public class LevelControl : MonoBehaviour
 
         //used when file read enabled
         
+        
+
     }
     // Update is called once per frame
     void Update()
@@ -127,7 +129,7 @@ public class LevelControl : MonoBehaviour
         WriteLevelTextLevel();
         WriteHighscoreLevel();
 
-        StartCoroutine(PostRequest(url));
+        StartCoroutine(PostRequest(urlWeb));
         SceneManager.LoadScene("Menu");
 
     }
@@ -155,6 +157,7 @@ public class LevelControl : MonoBehaviour
     public void WriteLevelTextLevel()
     {
         //network error will be checked before executing this function.
+
         LevelText = string.Format("{0}\n", TriEditList.Count + TriRectEditList.Count);
 
         foreach(GameObject TriEdit in TriEditList)
@@ -166,7 +169,7 @@ public class LevelControl : MonoBehaviour
         foreach (GameObject TriRectEdit in TriRectEditList)
         {
             Vector3 position = TriRectEdit.transform.position;
-            LevelText = LevelText + string.Format("0 {0} {1} 0.0\n", position.x, position.y);
+            LevelText = LevelText + string.Format("1 {0} {1} 0.0\n", position.x, position.y);
         }
     }
 
@@ -239,57 +242,20 @@ public class LevelControl : MonoBehaviour
     }*/
 
     // Start is called before the first frame update
-    
-
-    IEnumerator GetRequest(string url)
-    {
-        UnityWebRequest webRequest = UnityWebRequest.Get(url);
-        yield return webRequest.SendWebRequest();
-        if (webRequest.isNetworkError)
-        {
-            Debug.Log(": Error: " + webRequest.error);
-        }
-        else
-        {
-            Debug.Log(":\nReceived: " + webRequest.downloadHandler.text);
-        }
-    }
-
-    IEnumerator GetIdRequest(string url, string ID)
-    {
-        Debug.Log(url + "/" + ID);
-        UnityWebRequest webRequest = UnityWebRequest.Get(url + "/" + ID);
-        yield return webRequest.SendWebRequest();
-        if (webRequest.isNetworkError)
-        {
-            Debug.Log(": Error: " + webRequest.error);
-        }
-        else
-        {
-            //remove "[]" from json format
-            string jsonString = webRequest.downloadHandler.text.Replace("[", "").Replace("]", "");
-            Debug.Log(":\nReceived: " + webRequest.downloadHandler.text);
-            Debug.Log(jsonString);
-
-            //Convert {"field1":"myfield1", ...} to field1=myfield1 ... variables in a class
-            levelInfo levelInstance = levelInfo.CreateFromJson(jsonString);
-            Debug.Log(levelInstance.name);
-        }
-    }
 
     IEnumerator PostRequest(string url)
     {
         WWWForm formData = new WWWForm();
         //add fields between here
 
-        formData.AddField("id", Id.ToString());
+        //formData.AddField("id", Id.ToString());
         formData.AddField("name", Name);
         formData.AddField("imageurl", ImageUrl);
         formData.AddField("leveltext", LevelText);
         formData.AddField("highscore", highscore.ToString());
 
         //add fields between here!
-        using (UnityWebRequest webRequest = UnityWebRequest.Post(url, formData))
+        using (UnityWebRequest webRequest = UnityWebRequest.Post(urlWeb, formData))
         {
             //webRequest.chunkedTransfer = false;
             yield return webRequest.SendWebRequest();

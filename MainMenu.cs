@@ -4,13 +4,13 @@ using System.IO;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using UnityEngine.Networking;
 using UnityEngine.EventSystems;
-
 
 
 public class MainMenu : MonoBehaviour
 {
-    public int NUM_OF_SETTINGS=4;
+    public int NUM_OF_SETTINGS = 4;
     public float highlight = 1.2f;
     public float LevelButtonScale = 0.5f;
     public bool IsSettings = false;
@@ -40,9 +40,11 @@ public class MainMenu : MonoBehaviour
     public GameObject CurrentTriImage;
     public GameObject CurrentTriRectColor;
     public GameObject CurrentTriRectImage;
-    
-    private const float CAMERA_TRANSITION_SPEED = 3.0f;
 
+    private const float CAMERA_TRANSITION_SPEED = 3.0f;
+    public const string leveltext = "";
+
+    public string url = "ec2-3-15-131-103.us-east-2.compute.amazonaws.com:8081";
 
     Color[] btnColor =
     {
@@ -76,22 +78,12 @@ public class MainMenu : MonoBehaviour
 
         Sprite[] thumbnails = Resources.LoadAll<Sprite>("Levels");
         //Sprite array to save all thumbnails in "Levels" in Resources
-        foreach (Sprite thumbnail in thumbnails)
-        {
-            GameObject container = Instantiate(LevelButtonPrefab) as GameObject;
-            container.transform.localScale = new Vector3(LevelButtonScale, LevelButtonScale, 1.0f);
-            container.GetComponent<Image>().sprite = thumbnail;
-            container.transform.SetParent(LevelButtonContainer.transform, false);
-            //overload to spawn object in parent location
 
-            string sceneName = thumbnail.name;
-            //change scene name here
-            container.GetComponent<Button>().onClick.AddListener(() => LoadLevel(sceneName));
-            //fetch a function on click
+        //GetRequest should send a request to server and get list of id to make buttons with it
+        StartCoroutine(GetRequest(url));
 
-        }
         Sprite[] textures = Resources.LoadAll<Sprite>("Triangle_Texture");
-        foreach(Sprite ColorTexture in textures)
+        foreach (Sprite ColorTexture in textures)
         {
             GameObject container = Instantiate(ShopColorPrefab) as GameObject;
             container.GetComponent<Image>().sprite = ColorTexture;
@@ -117,7 +109,7 @@ public class MainMenu : MonoBehaviour
         Sprite[] tribtnImages = Resources.LoadAll<Sprite>("TriShape");
 
         //load button images from a folder
-        foreach(Sprite btnImage in tribtnImages)
+        foreach (Sprite btnImage in tribtnImages)
         {
             GameObject btncontainer = Instantiate(ShopButtonPrefab) as GameObject;
             btncontainer.GetComponent<Image>().sprite = btnImage;
@@ -141,7 +133,7 @@ public class MainMenu : MonoBehaviour
         }
 
         //testing
-        for(int i=0; i<NUM_OF_SETTINGS; ++i)
+        for (int i = 0; i < NUM_OF_SETTINGS; ++i)
         {
             CheckmarkList[i] = Instantiate<GameObject>(CheckmarkPrefab);
         }
@@ -156,22 +148,30 @@ public class MainMenu : MonoBehaviour
     }
     private void Update()
     {
-        if(cameraDesiredLookAt != null)
+        if (cameraDesiredLookAt != null)
         {
-            cameraTransform.rotation = Quaternion.Slerp(cameraTransform.rotation, cameraDesiredLookAt.rotation,CAMERA_TRANSITION_SPEED*Time.deltaTime);
+            cameraTransform.rotation = Quaternion.Slerp(cameraTransform.rotation, cameraDesiredLookAt.rotation, CAMERA_TRANSITION_SPEED * Time.deltaTime);
         }
     }
-    private void LoadLevel(string sceneName)
+    public void LoadLevel(string sceneId)
     {
-        string path = "Assets/Resources/LevelsText/" + sceneName + ".txt";
+        /*
+        //Load scenetext.txt from resources to manage info
+
+        string path = Application.dataPath + sceneId + ".txt";
 
         var reader = new StreamReader(path);
         var writer = new StreamWriter("Assets/Resources/SceneText.txt",false);
+        
 
         writer.Write(reader.ReadToEnd());
         writer.Close();
+        */
 
-        SceneManager.LoadScene("BaseScene");
+        //have to write to Resources/SceneText.txt file the content of leveltext
+
+        StopAllCoroutines();
+        StartCoroutine(GetIdRequest(url, sceneId));
     }
 
     public void LookAtMenu(Transform menuTransform)
@@ -212,11 +212,11 @@ public class MainMenu : MonoBehaviour
 
     public void LocateCheckmark(GameObject Checkmark, GameObject CurrentButton)
     {
-        if(Checkmark == null)
+        if (Checkmark == null)
         {
             Checkmark = Instantiate(CheckmarkPrefab);
         }
-        Checkmark.transform.SetParent(CurrentButton.transform,false);
+        Checkmark.transform.SetParent(CurrentButton.transform, false);
     }
 
     public void SetCheckmarks()
@@ -254,8 +254,126 @@ public class MainMenu : MonoBehaviour
         LocateCheckmark(CheckmarkList[0], CurrentTriRectImage);
     }
 
+    public void CreateButton(int Id)
+    {
+        GameObject container = Instantiate(LevelButtonPrefab) as GameObject;
+        container.transform.localScale = new Vector3(LevelButtonScale, LevelButtonScale, 1.0f);
+
+        //container.GetComponent<Image>().sprite = thumbnail;
+        container.transform.SetParent(LevelButtonContainer.transform, false);
+        //overload to spawn object in parent location
+
+        string sceneId = Id.ToString();
+        //change scene name here
+        container.GetComponent<Button>().onClick.AddListener(() => LoadLevel(sceneId));
+        //fetch a function on click
+    }
+
     public void EditLevel()
     {
         SceneManager.LoadScene("EditScene");
+    }
+
+    IEnumerator GetRequest(string url)
+    {
+        UnityWebRequest webRequest = UnityWebRequest.Get(url);
+        levelInfo levelInfoCurrent = new levelInfo();
+        yield return webRequest.SendWebRequest();
+        //string[] jsonList = JsonUtility. (webRequest.downloadHandler.text);
+        List<string> jsonList = GetJsonParse(webRequest.downloadHandler.text);
+        foreach(string jsonItem in jsonList)
+        {
+            Debug.Log(jsonItem);
+            levelInfoCurrent = levelInfo.CreateFromJson(jsonItem);
+            Debug.Log(levelInfoCurrent.id);
+        }
+        //Debug.Log(webRequest.downloadHandler.text);@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        if (webRequest.isNetworkError)
+        {
+            Debug.Log(": Error: " + webRequest.error);
+        }
+        else
+        {
+            Debug.Log(":\nReceived: " + webRequest.downloadHandler.text);
+            /*string jsonString = webRequest.downloadHandler.text.Replace("[", "").Replace("]", "");
+            levelInfo levelInstance = levelInfo.CreateFromJson(jsonString);
+            Debug.Log(levelInstance.id);*/
+        }
+    }
+
+    IEnumerator GetIdRequest(string url, string ID)
+    {
+        Debug.Log(url + "/" + ID);
+        UnityWebRequest webRequest = UnityWebRequest.Get(url + "/" + ID);
+        yield return webRequest.SendWebRequest();
+        if (webRequest.isNetworkError)
+        {
+            Debug.Log(": Error: " + webRequest.error);
+        }
+        else
+        {
+            //remove "[]" from json format
+            string jsonString = webRequest.downloadHandler.text.Replace("[", "").Replace("]", "");
+            Debug.Log(":\nReceived: " + webRequest.downloadHandler.text);
+        }
+        //remove "[]" from json format
+        string jsonString = webRequest.downloadHandler.text.Replace("[", "").Replace("]", "");
+        Debug.Log("Res : " + (webRequest.downloadHandler.text));
+        List<string> jsonList = GetJsonParse(webRequest.downloadHandler.text);
+
+        //Convert {"field1":"myfield1", ...} to field1=myfield1 ... variables in a class
+        levelInfo levelInstance = levelInfo.CreateFromJson(jsonList[0]);
+        Debug.Log(levelInstance.leveltext);
+
+        PublicLevel.id = levelInstance.id;
+        PublicLevel.sceneText = levelInstance.leveltext;
+        PublicLevel.highScore = levelInstance.highscore;
+
+            //Convert {"field1":"myfield1", ...} to field1=myfield1 ... variables in a class
+            levelInfo levelInstance = levelInfo.CreateFromJson(jsonString);
+            Debug.Log(levelInstance.name);
+        }
+    }
+
+    public class levelInfo
+    {
+        public int id;
+        public string name;
+        public string imageurl;
+        public string leveltext;
+        public float highscore;
+
+        public static levelInfo CreateFromJson(string jsonString)
+        {
+            return JsonUtility.FromJson<levelInfo>(jsonString);
+        }
+    }
+
+    public List<string> GetJsonParse(string jsonArray)
+    {
+        List<string> jsonList = new List<string>();
+        int startindex = 0;
+        int endindex = 0;
+
+        while(jsonArray[startindex] != ']')
+        {
+            //find '{'
+            if(jsonArray[startindex] == '{')
+            {
+                endindex = startindex + 1;
+                while(jsonArray[endindex] != '}')
+                {
+                    endindex++;
+                }
+                //found start and endindex
+                jsonList.Add(jsonArray.Substring(startindex, endindex - startindex + 1));
+                startindex = endindex + 1;
+            }
+            else
+            {
+                startindex++;
+            }
+        }
+        return jsonList;
     }
 }
