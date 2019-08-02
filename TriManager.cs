@@ -10,6 +10,8 @@ public class TriManager : MonoBehaviour
     public GameObject Tri;
     public GameObject TriRect;
     public GameObject PlayerPanel;
+
+    public GameObject[] TriRectList;
     public List<GameObject> CurTriList;
     public List<GameObject> DelTriList;
     public int TriCounter = 0;
@@ -47,13 +49,16 @@ public class TriManager : MonoBehaviour
         string content = PublicLevel.sceneText;
         string bestscore = PublicLevel.highScore.ToString();
 
+        textbestScore.text = "Best : " + bestscore.ToString();
+
         TriColor = Tri.GetComponent<Image>().color;
         TriRectColor = TriRect.GetComponent<Image>().color;
         var Lines = content.Split('\n');
         PointNumber = int.Parse(Lines[0]);
         TriArr = new TriControl.TriPoint[PointNumber + 1];
-
         InitPanel(PointNumber, Lines);
+
+        TriRectList = GameObject.FindGameObjectsWithTag("ShapeRect");
     }
 
     // Update is called once per frame
@@ -78,7 +83,7 @@ public class TriManager : MonoBehaviour
     {
         int PointCounter = 0;
 
-        TriTotal = PointNumber;
+        TriTotal = 0;
 
         for (PointCounter = 1; PointCounter < PointNumber + 1; ++PointCounter)
         {
@@ -92,7 +97,10 @@ public class TriManager : MonoBehaviour
             currVector = new Vector3(float.Parse(words[1]), float.Parse(words[2]), float.Parse(words[3]));
 
             if (currShape == TriControl.Shape.Triangle)
-            { currButton = Instantiate(Tri) as GameObject; }
+            {
+                currButton = Instantiate(Tri) as GameObject;
+                TriTotal += 1;
+            }
             else
             { currButton = Instantiate(TriRect) as GameObject; }
 
@@ -192,8 +200,9 @@ public class TriManager : MonoBehaviour
         rectangleFlag = false;
 
         score += AddScore(TriList);
-
         TriList.Clear();
+
+        textScore.text = "Score : " + score.ToString();
 
         if(DelTriList.Count == TriTotal)
         {
@@ -204,7 +213,16 @@ public class TriManager : MonoBehaviour
     public float AddScore(List<GameObject> TriList)
     {
         //calculate score here!@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-        return 50.1f;
+        int scoreCurrent = 0;
+
+        foreach (GameObject ShapeRect in TriRectList)
+        {
+            if (Poly.ContainsPoint(TriList, ShapeRect.transform.position))
+            {
+                scoreCurrent += 1;
+            }
+        }
+        return scoreCurrent;
     }
 
     public void SetTriHighlight(GameObject CurObject)
@@ -253,6 +271,24 @@ public class TriManager : MonoBehaviour
                 Debug.Log(":Request Sent:");
                 Debug.Log(urlWeb);
             }
+        }
+    }
+
+    public static class Poly
+    {
+        public static bool ContainsPoint(List<GameObject> polyPoints, Vector2 p)
+        {
+            var j = polyPoints.Count - 1;
+            var inside = false;
+            for (int i = 0; i < polyPoints.Count; j = i++)
+            {
+                var pi = polyPoints[i].transform.position;
+                var pj = polyPoints[j].transform.position;
+                if (((pi.y <= p.y && p.y < pj.y) || (pj.y <= p.y && p.y < pi.y)) &&
+                    (p.x < (pj.x - pi.x) * (p.y - pi.y) / (pj.y - pi.y) + pi.x))
+                    inside = !inside;
+            }
+            return inside;
         }
     }
 

@@ -34,7 +34,19 @@ public class LevelControl : MonoBehaviour
     //WWWForm variables
     public int Id = 404;
     public string Name = "Editted";
-    public string ImageUrl = "example.com";
+    public string ImageUrl;
+
+    public string[] ImageUrlarr =
+    {
+        "https://lh3.googleusercontent.com/TdOjHNDtUO3BBFTg3FFJZz47VOcsodslejs4ogEhZPxug5fXcSA8k0uanJ6qQ0KdOYYV=s85",
+        "http://lh3.googleusercontent.com/0_RtOnwpnViZLOgnGKWZKQCy5775Bhdue27EiYOBuOQ2FQ3gzpqSKxdi1cVR05Ptef-9UeY=s50",
+        "http://lh3.googleusercontent.com/LNLR_6nbYxCFwhUMvwoWaUO1G0LjZG4tar2YSLt0Yht4NyieoqZuKLavaqg7BpTt2x-s=s50",
+        "http://lh3.googleusercontent.com/1ZSeoDvC-G9rDDW8JhrDdfNvce4-E2E9vjayHLa2TOTzFiuQohPIIHUiIjWofQypbuWR7Zg=s50",
+        "http://lh3.googleusercontent.com/tlTEdaQTcPETAxJxeNnOtVMpB6KVKHnNkAlgZJbswY1OF9Xjls6LSRE4QD9_sDVkZXFY=s50",
+        "http://lh3.googleusercontent.com/48oHZKWZsSzk-CszwNeLoIhy0f2KK85O9fXIcXujohBLYrsRYolmXoCAAlM1w8eoq4vyTQU=s85"
+    };
+
+    public string imageUrl;
     public string LevelText = "";
     public float highscore = 0.00f;
     
@@ -45,8 +57,10 @@ public class LevelControl : MonoBehaviour
 
     public string urlWeb = "http://ec2-3-15-131-103.us-east-2.compute.amazonaws.com:8081";
 
+
     void Start()
     {
+        Camera.main.backgroundColor = Color.black;
         /*Vector3 UpVector = new Vector3(0.0f, 1.0f, 0.0f);
         Vector3 FrontVector = new Vector3(0.0f, 0.0f, 350.0f);
         CameraTransform.position = PlayerPanel.GetComponent<RectTransform>().position - FrontVector;
@@ -149,7 +163,8 @@ public class LevelControl : MonoBehaviour
     public void WriteImageUrlLevel()
     {
         Texture2D texture = UploadSprite.texture;
-        //imageurl = GetImageUrl()@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+        imageUrl = ImageUrl;
 
         //get url function needed!
     }
@@ -195,6 +210,7 @@ public class LevelControl : MonoBehaviour
 
     public void ChooseLevelImage()
     {
+        int index = 0;
         Sprite[] thumbnails = Resources.LoadAll<Sprite>("LevelImage");
         //Sprite array to save all thumbnails in "Levels" in Resources
         foreach (Sprite thumbnail in thumbnails)
@@ -204,22 +220,25 @@ public class LevelControl : MonoBehaviour
             container.GetComponent<Image>().sprite = thumbnail;
             container.transform.SetParent(LevelButtonContainer.transform, false);
             //overload to spawn object in parent location
-
+            int tempindex = index;
             string sceneName = thumbnail.name;
             //change scene name here
-            container.GetComponent<Button>().onClick.AddListener(() => ClickLevelImage());
+            container.GetComponent<Button>().onClick.AddListener(() => ClickLevelImage(tempindex));
             //fetch a function on click
 
+            index++;
         }
 
         LocateCheckmark(LevelButtonContainer.transform.GetChild(0).gameObject);
         UploadSprite = LevelButtonContainer.transform.GetChild(0).GetComponent<Image>().sprite;
     }
 
-    public void ClickLevelImage()
+    public void ClickLevelImage(int index)
     {
         GameObject ClickedObject = EventSystem.current.currentSelectedGameObject;
         UploadSprite = ClickedObject.GetComponent<Image>().sprite;
+        Debug.Log(index);
+        ImageUrl = ImageUrlarr[index];
         LocateCheckmark(ClickedObject);
     }
 

@@ -254,11 +254,13 @@ public class MainMenu : MonoBehaviour
         LocateCheckmark(CheckmarkList[0], CurrentTriRectImage);
     }
 
-    public void CreateButton(int Id)
+    public void CreateButton(int Id, string urlImage)
     {
         GameObject container = Instantiate(LevelButtonPrefab) as GameObject;
         container.transform.localScale = new Vector3(LevelButtonScale, LevelButtonScale, 1.0f);
-
+        
+        ChangeButtonImage(container, urlImage);
+        
         //container.GetComponent<Image>().sprite = thumbnail;
         container.transform.SetParent(LevelButtonContainer.transform, false);
         //overload to spawn object in parent location
@@ -285,7 +287,8 @@ public class MainMenu : MonoBehaviour
         {
             Debug.Log(jsonItem);
             levelInfoCurrent = levelInfo.CreateFromJson(jsonItem);
-            Debug.Log(levelInfoCurrent.id);
+
+            CreateButton(levelInfoCurrent.id, levelInfoCurrent.imageurl);
         }
         //Debug.Log(webRequest.downloadHandler.text);@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         if (webRequest.isNetworkError)
@@ -329,10 +332,15 @@ public class MainMenu : MonoBehaviour
         PublicLevel.sceneText = levelInstance.leveltext;
         PublicLevel.highScore = levelInstance.highscore;
 
-            //Convert {"field1":"myfield1", ...} to field1=myfield1 ... variables in a class
-            levelInfo levelInstance = levelInfo.CreateFromJson(jsonString);
-            Debug.Log(levelInstance.name);
-        }
+        SceneManager.LoadScene("BaseScene");
+
+    }
+
+    public void ChangeButtonImage(GameObject currentButton, string urlImage)
+    {
+        //currentButton.GetComponent<Image>().sprite = TestImage;
+        // change sprite image by url here@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        StartCoroutine(DownloadImage(currentButton,urlImage));
     }
 
     public class levelInfo
@@ -347,6 +355,28 @@ public class MainMenu : MonoBehaviour
         {
             return JsonUtility.FromJson<levelInfo>(jsonString);
         }
+    }
+
+    IEnumerator DownloadImage(GameObject buttonInstance, string urlImage)
+    {
+        UnityWebRequest request = UnityWebRequestTexture.GetTexture(urlImage);
+        Texture2D webTexture;
+        Sprite webSprite;
+        yield return request.SendWebRequest();
+
+        if (request.isNetworkError || request.isHttpError)
+            Debug.Log(request.error);
+        else
+        {
+            webTexture = ((DownloadHandlerTexture)request.downloadHandler).texture as Texture2D;
+            webSprite = SpriteFromTexture2D(webTexture);
+            buttonInstance.GetComponent<Image>().sprite = webSprite;
+        }
+    }
+
+    Sprite SpriteFromTexture2D(Texture2D texture)
+    {
+        return Sprite.Create(texture, new Rect(0.0f, 0.0f, texture.width, texture.height), new Vector2(0.5f, 0.5f), 100.0f);
     }
 
     public List<string> GetJsonParse(string jsonArray)
