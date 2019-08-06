@@ -258,7 +258,7 @@ public class MainMenu : MonoBehaviour
     {
         GameObject container = Instantiate(LevelButtonPrefab) as GameObject;
         container.transform.localScale = new Vector3(LevelButtonScale, LevelButtonScale, 1.0f);
-        
+
         ChangeButtonImage(container, urlImage);
         
         //container.GetComponent<Image>().sprite = thumbnail;
