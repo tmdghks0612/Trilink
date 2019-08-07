@@ -44,7 +44,10 @@ public class MainMenu : MonoBehaviour
     private const float CAMERA_TRANSITION_SPEED = 3.0f;
     public const string leveltext = "";
 
-    public string url = "ec2-3-15-131-103.us-east-2.compute.amazonaws.com:8081";
+    public Sprite TestImage;
+    //@@@@@@@@@@@@@@@@@@@@@@@@@@remove after url image job completed
+
+    string urlWeb = "http://ec2-3-15-131-103.us-east-2.compute.amazonaws.com:8081";
 
     Color[] btnColor =
     {
@@ -80,7 +83,7 @@ public class MainMenu : MonoBehaviour
         //Sprite array to save all thumbnails in "Levels" in Resources
 
         //GetRequest should send a request to server and get list of id to make buttons with it
-        StartCoroutine(GetRequest(url));
+        StartCoroutine(GetRequest(urlWeb));
 
         Sprite[] textures = Resources.LoadAll<Sprite>("Triangle_Texture");
         foreach (Sprite ColorTexture in textures)
@@ -168,10 +171,8 @@ public class MainMenu : MonoBehaviour
         writer.Close();
         */
 
-        //have to write to Resources/SceneText.txt file the content of leveltext
-
         StopAllCoroutines();
-        StartCoroutine(GetIdRequest(url, sceneId));
+        StartCoroutine(GetIdRequest(urlWeb, sceneId));
     }
 
     public void LookAtMenu(Transform menuTransform)
@@ -263,9 +264,11 @@ public class MainMenu : MonoBehaviour
         
         //container.GetComponent<Image>().sprite = thumbnail;
         container.transform.SetParent(LevelButtonContainer.transform, false);
+        
         //overload to spawn object in parent location
 
         string sceneId = Id.ToString();
+
         //change scene name here
         container.GetComponent<Button>().onClick.AddListener(() => LoadLevel(sceneId));
         //fetch a function on click
@@ -283,14 +286,14 @@ public class MainMenu : MonoBehaviour
         yield return webRequest.SendWebRequest();
         //string[] jsonList = JsonUtility. (webRequest.downloadHandler.text);
         List<string> jsonList = GetJsonParse(webRequest.downloadHandler.text);
-        foreach(string jsonItem in jsonList)
+
+        foreach (string jsonItem in jsonList)
         {
             Debug.Log(jsonItem);
             levelInfoCurrent = levelInfo.CreateFromJson(jsonItem);
 
             CreateButton(levelInfoCurrent.id, levelInfoCurrent.imageurl);
         }
-        //Debug.Log(webRequest.downloadHandler.text);@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         if (webRequest.isNetworkError)
         {
             Debug.Log(": Error: " + webRequest.error);
@@ -306,17 +309,15 @@ public class MainMenu : MonoBehaviour
 
     IEnumerator GetIdRequest(string url, string ID)
     {
-        Debug.Log(url + "/" + ID);
         UnityWebRequest webRequest = UnityWebRequest.Get(url + "/" + ID);
         yield return webRequest.SendWebRequest();
+
         if (webRequest.isNetworkError)
         {
             Debug.Log(": Error: " + webRequest.error);
         }
         else
         {
-            //remove "[]" from json format
-            string jsonString = webRequest.downloadHandler.text.Replace("[", "").Replace("]", "");
             Debug.Log(":\nReceived: " + webRequest.downloadHandler.text);
         }
         //remove "[]" from json format

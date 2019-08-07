@@ -32,7 +32,7 @@ public class LevelControl : MonoBehaviour
     public Transform CameraTransform;
 
     //WWWForm variables
-    public int Id = 404;
+    public int Id = 405;
     public string Name = "Editted";
     public string ImageUrl;
 
@@ -84,6 +84,13 @@ public class LevelControl : MonoBehaviour
 
     public void ResetScene()
     {
+        TriManagerInst.ResetAllTris();
+        ReturnScene();
+        //reset score and etc
+    }
+
+    public void ClearScene()
+    {
         GameObject[] Tris = GameObject.FindGameObjectsWithTag("Respawn");
         foreach(GameObject Tri in Tris)
         {
@@ -91,6 +98,12 @@ public class LevelControl : MonoBehaviour
         }
         ReturnScene();
         //reset score and etc
+    }
+
+    public void ReturnObject(GameObject PanelCurrent)
+    {
+        Vector3 Direction = new Vector3(675.0f, 0.0f, 0.0f);
+        PanelCurrent.transform.position = PlayerPanel.gameObject.GetComponent<RectTransform>().position + Direction;
     }
     
     public void ReturnScene()
@@ -100,11 +113,9 @@ public class LevelControl : MonoBehaviour
         ResetPopup.transform.position = PlayerPanel.gameObject.GetComponent<RectTransform>().position+Direction;
     }
     
-    public void PopupReset()
+    public void PopupObject(GameObject PanelCurrent)
     {
-        //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-        Vector3 Direction = new Vector3(443.0f, 194.0f, 0.0f);
-        ResetPopup.transform.position = PlayerPanel.transform.position;
+        PanelCurrent.transform.position = PlayerPanel.transform.position;
     }
 
     public void PopupEndLevel()
@@ -120,11 +131,6 @@ public class LevelControl : MonoBehaviour
     public void ReturnToMainmenu()
     {
         SceneManager.LoadScene("Menu");
-    }
-
-    public void PopupUpload()
-    {
-        UploadPopup.transform.position = PlayerPanel.transform.position;
     }
 
     public void ReturnUploadScene()
@@ -151,7 +157,7 @@ public class LevelControl : MonoBehaviour
     public void WriteIdLevel()
     {
         //Id = GetIdLevel()@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-
+        Id = 405;
         //get id function needed!!
     }
 
